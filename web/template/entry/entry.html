@@ -1,0 +1,48 @@
+{{ define "content" }}
+
+<h1>{{ .Text }} <small>{{ .Language }}</small></h1>
+
+
+<ul class="list-group">
+{{ range .Notes }}
+
+<li class="list-group-item">
+    {{ .Content }}
+    <button class="btnDeleteNote btn btn-danger" data-note-id = {{ .Id }}>Delete</button>
+</li>
+
+{{ end }}
+</ul>
+
+<h2>Lemmas</h2>
+<ul class="list-group">
+    {{ range .Lemmas }}
+    
+    <li class="list-group-item">
+        <a href="/entry/{{ .Id }}">{{ .Text }}</a>
+    </li>
+    
+    {{ end }}
+    </ul>
+
+<h2>Derives</h2>
+
+<ul class="list-group">
+    {{ range .Derives }}
+    
+    <li class="list-group-item">
+        <a href="/entry/{{ .Id }}">{{ .Text }}</a>
+    </li>
+    
+    {{ end }}
+    </ul>
+
+{{ template "dependencies" . }}
+{{ template "scripts" . }}
+
+{{ end }}
+
+
+{{ define "scripts" }}
+<script src="/static/js/entry.js"></script>
+{{ end }}

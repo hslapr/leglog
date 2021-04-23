@@ -1,0 +1,81 @@
+{{ define "content" }}
+
+<div id="div-text">
+    {{ .Html }}
+</div>
+<div id="divEntries" style="display: none;">
+  <hr>
+  <button class="btn btn-primary mx-1" id="btnNewEntryNote">New</button>
+</div>
+
+
+<form id="newNoteForm" method="POST" action="/note/create" style="display: none;" autocomplete="off" >
+  <hr>
+  <h3>New Note</h3>
+    <div class="mb-2">
+        <textarea class="form-control" id="taNewNote" name="note" rows="3"></textarea>
+      </div>
+      <div class="row mb-3">
+        <div class="col">
+          <div class="dropdown"></div>
+          <input type="text" class="form-control dropdown-toggle" data-bs-toggle="dropdown" id="iRoot" placeholder="root" name="lemma">
+          <div class="dropdown-menu p-0 m-0">
+          <div class="input-group p-0 m-0"><select class="form-select" id="lemmaSelect" name="lemma">
+          </select>
+          <button class="btn btn-outline-secondary" type="button" id="btnConfirmLemma">OK</button>
+        </div>
+        </div>
+        </div>
+        <div class="col input-group d-flex justify-content-end">
+          <select class="form-select" id="entryCaseSelect">
+            <option selected value="0">Lower Case</option>
+            <option value="1">Title Case</option>
+            <option value="2">Upper Case</option>
+          </select>
+          <button class="btn btn-primary" id="btnSubmitNewNote">Submit</button>
+        </div>
+    
+    </div>
+</form>
+
+
+<div id="divEditNote" style="display: none;" >
+  <hr>
+  <h3 id="editNoteTitle"></h3>
+<form id="editNoteForm">
+<div class="mb-2">
+  <textarea name="note" id="taEditNote" class="form-control">
+  </textarea>
+</div>
+<div class="input-group p-0">
+  <input class="form-control" id="iAddLemma" name="lemma" type="text" style="display: none;">
+<button style="display: none;"  id="btnSaveChange" class=" btn btn-primary">Save Change</button>
+</div>
+</form>
+</div>
+
+
+<div id="divNotes" entry-id="" style="display: none;" >
+  <hr>
+  <div class="mb-3">
+  <button id="btnNewNote" class="btn btn-primary float-end" >New</button>
+  <h3>Notes</h3>
+  </div>
+<div class="list-group" id="noteList" >
+
+</div>
+</div>
+
+<input type="text" id="iSelectedText" >
+
+
+<script lang="javascript">
+  var lang = {{ .Language }};
+</script>
+{{ end }}
+
+{{ define "scripts" }}
+
+<script src="/static/js/read.js"></script>
+
+{{ end }}

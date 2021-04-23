@@ -1,0 +1,19 @@
+{{ define "content" }}
+
+
+<ul class="list-group">
+{{ range . }}
+
+<li class="list-group-item">
+    <a class="list-group-item-action" href={{ printf "/entry/%d" .Id }}>{{ printf "%s (%s) [%s]" .Text .Language .CreationTimestamp}}</a>
+</li>
+
+
+{{ end }}
+</ul>
+
+
+{{ template "dependencies" . }}
+
+{{ end }}
+

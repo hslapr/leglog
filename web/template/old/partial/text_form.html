@@ -1,0 +1,16 @@
+{{ define "text_form"}}
+<h2>Start Reading Now!</h2>
+<form method="POST" action=".">
+    <div class="mb-1">
+        {{ template "language_selector" .}}
+    </div>
+      <div class="mb-1">
+        <label for="text" class="form-label">Text</label>
+        <textarea class="form-control" id="text" name="text" rows="3"></textarea>
+      </div>
+      <div class="d-flex">
+      <input class="btn btn-primary ms-auto" type="submit" value="Submit">
+    </div>
+</form>
+
+{{ end }}

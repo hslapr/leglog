@@ -1,0 +1,18 @@
+{{ define "content" }}
+
+
+<div class="list-group">
+{{ range . }}
+<a href={{ printf "/read/%d" .Id }} class="list-group-item list-group-item-action">
+<div>
+    {{ printf "%s (%s) [%s]" .Title .Language .CreationTimestamp }}
+</div>
+</a>
+{{ end }}
+</div>
+
+{{ end }}
+
+{{ define "scripts" }}
+
+{{ end }}

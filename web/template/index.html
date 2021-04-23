@@ -1,0 +1,39 @@
+{{ define "content" }}
+<h1 class="text-center">LEGLOG</h1>
+<h2>Start Reading Now!</h2>
+<form method="POST" action=".">
+    <div class="mb-1">
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="language" id="languageRadioEn" value="en">
+            <label class="form-check-label" for="languageRadioEn">English</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="language" id="languageRadioDe" value="de">
+            <label class="form-check-label" for="languageRadioDe">Deutsch</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="language" id="languageRadioIt" value="it" checked>
+            <label class="form-check-label" for="languageRadioIt">Italiano</label>
+          </div>
+    </div>
+      <div class="mb-1">
+        <label for="text" class="form-label">Text</label>
+        <textarea class="form-control" id="text" name="text" rows="3"></textarea>
+      </div>
+      <div class="input-group">
+        <input class="form-control" type="text" name="title" placeholder="Title">
+      <input class="btn btn-outline-primary ms-auto" type="submit" value="Submit">
+    </div>
+</form>
+
+
+{{ template "dependencies" }}
+
+{{ template "scripts" . }}
+{{ end }}
+
+{{ define "scripts" }}
+<script>
+    
+</script>
+{{ end }}

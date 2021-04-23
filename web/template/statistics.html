@@ -1,0 +1,9 @@
+{{ define "content" }}
+
+<p>Total Entry Count: {{ index . "EntryCount" }}</p>
+<p>Total Note Count: {{ index . "NoteCount" }}</p>
+<p>Total Text Count: {{ index . "TextCount" }}</p>
+
+{{ template "dependencies" . }}
+
+{{ end }}

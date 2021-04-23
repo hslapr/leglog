@@ -1,0 +1,25 @@
+.selected.word{
+    background-color: powderblue;
+}
+
+.selected .word{
+    background-color: powderblue;
+}
+
+#div-text {
+    max-height: 40ex;
+    overflow: auto;
+}
+
+#iSelectedText{
+    position: absolute;
+    top: -10ex;
+}
+
+#div-text{
+    font-size: large;
+}
+
+span.phrase{
+    background-color: aliceblue;
+}
