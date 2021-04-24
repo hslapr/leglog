@@ -12,6 +12,10 @@ type Entry struct {
 	CreationTimestamp int64
 }
 
+func (entry *Entry) CreationTime(layout string) string {
+	return time.Unix(entry.CreationTimestamp, 0).Format(layout)
+}
+
 func (entry *Entry) AddLemma(lemma *Entry) {
 	db.Exec("INSERT INTO lemmatization (entry_id, lemma_id) VALUES (?, ?)", entry.Id, lemma.Id)
 }

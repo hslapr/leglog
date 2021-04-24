@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"html/template"
 	"log"
+	"math"
 	"net/http"
 	"strconv"
 
 	"github.com/hslapr/leglog/pkg/data"
 	"github.com/hslapr/leglog/pkg/model"
-	"github.com/hslapr/leglog/pkg/parser"
 	"github.com/hslapr/leglog/pkg/util"
+)
+
+const (
+	ENTRY_PER_PAGE = 10
+	TEXT_PER_PAGE  = 5
 )
 
 func noescape(str string) template.JS {
@@ -51,13 +56,6 @@ var textListTemplate = template.Must(template.ParseFiles(
 	TEMPLATE_PATH+"partial/layout.html",
 	TEMPLATE_PATH+"text/index.html"))
 
-func renderTemplate(w http.ResponseWriter, tmpl string, p *ViewModel) {
-	/* err := templates.ExecuteTemplate(w, tmpl, p)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	} */
-}
-
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
 		indexTemplate.ExecuteTemplate(w, "layout", nil)
@@ -73,14 +71,6 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func indexPostHandler(w http.ResponseWriter, r *http.Request) {
-	lang := string(r.FormValue("language"))
-	text := string(r.FormValue("text"))
-	t := parser.Parse(text, lang)
-	t.Save()
-	http.Redirect(w, r, fmt.Sprintf("/read/%d", t.Id), http.StatusFound)
-}
-
 func readHandler(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.ParseInt(r.URL.Path[len("/read/"):], 10, 64)
 	t := model.LoadText(id)
@@ -94,9 +84,34 @@ func statisticsHandler(w http.ResponseWriter, r *http.Request) {
 
 func entryHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.ParseInt(r.URL.Path[len("/entry/"):], 10, 64)
+	// entry index list all entries
 	if err != nil {
-		entries := model.Entries()
-		entryListTemplate.ExecuteTemplate(w, "layout", entries)
+		var page int64 = 1
+		pageStr := r.FormValue("page")
+		if len(pageStr) > 0 {
+			page, _ = strconv.ParseInt(pageStr, 10, 64)
+		}
+		cntEntry := model.EntryCount()
+		cntPages := int64(math.Ceil(float64(cntEntry) / ENTRY_PER_PAGE))
+		if page > cntPages {
+			page = cntPages
+		}
+		data := make(map[string]interface{})
+		entries := model.Entries((page-1)*ENTRY_PER_PAGE, ENTRY_PER_PAGE, "creation_time DESC")
+		data["Entries"] = entries
+		data["Page"] = page
+		if page < cntPages {
+			data["NextPage"] = page + 1
+		} else {
+			data["NextPage"] = 0
+		}
+		if page > 1 {
+			data["PrevPage"] = page - 1
+		} else {
+			data["PrevPage"] = 0
+		}
+		data["LastPage"] = cntPages
+		entryListTemplate.ExecuteTemplate(w, "layout", data)
 	} else {
 		entry := new(model.Entry)
 		entry.Id = id
@@ -106,8 +121,32 @@ func entryHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func textHandler(w http.ResponseWriter, r *http.Request) {
-	texts := model.Texts()
-	textListTemplate.ExecuteTemplate(w, "layout", texts)
+	var page int64 = 1
+	pageStr := r.FormValue("page")
+	if len(pageStr) > 0 {
+		page, _ = strconv.ParseInt(pageStr, 10, 64)
+	}
+	cntText := model.TextCount()
+	cntPages := int64(math.Ceil(float64(cntText) / TEXT_PER_PAGE))
+	if page > cntPages {
+		page = cntPages
+	}
+	texts := model.Texts((page-1)*TEXT_PER_PAGE, TEXT_PER_PAGE, "creation_time DESC")
+	data := make(map[string]interface{})
+	data["Texts"] = texts
+	data["Page"] = page
+	if page < cntPages {
+		data["NextPage"] = page + 1
+	} else {
+		data["NextPage"] = 0
+	}
+	if page > 1 {
+		data["PrevPage"] = page - 1
+	} else {
+		data["PrevPage"] = 0
+	}
+	data["LastPage"] = cntPages
+	textListTemplate.ExecuteTemplate(w, "layout", data)
 }
 
 func main() {

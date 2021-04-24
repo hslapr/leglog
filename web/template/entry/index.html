@@ -1,17 +1,63 @@
 {{ define "content" }}
 
-
-<ul class="list-group">
-{{ range . }}
-
-<li class="list-group-item">
-    <a class="list-group-item-action" href={{ printf "/entry/%d" .Id }}>{{ printf "%s (%s) [%s]" .Text .Language .CreationTimestamp}}</a>
-</li>
+{{ $entries := index . "Entries"}}
+{{ $page := index . "Page" }}
+{{ $prevPage := index . "PrevPage" }}
+{{ $nextPage := index . "NextPage" }}
+{{ $lastPage := index . "LastPage" }}
 
 
-{{ end }}
-</ul>
+<table class="table">
+    <thead>
+        <tr>
+            <th scope="col">Entry</th>
+            <th scope="col">Language</th>
+            <th scope="col">CreationTime</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{ range $entries }}
+        <tr>
+            <td>
+                <a href={{ printf "/entry/%d" .Id }}>{{ .Text }}</a>
+            </td>
+            <td>
+                {{ .Language }}
+            </td>
+            <td>
+                {{ .CreationTime "2006/01/02 15:04"}}
+            </td>
+        </tr>
+        {{ end }}
+    </tbody>
+</table>
 
+<nav aria-label="Page navigation">
+    <ul class="pagination justify-content-center">
+        {{ if gt $prevPage 0}}
+        <li class="page-item">
+        {{ else }}
+        <li class="page-item disabled">
+        {{ end }}
+        <a class="page-link" href="/entry/?page={{ $prevPage }}" aria-label="Previous">
+          <span aria-hidden="true">&laquo;</span>
+        </a>
+      </li>
+      <li class="page-item {{ if eq $page 1}}{{ print `disabled` }}{{ end }}"><a class="page-link" href="/entry/?page=1">1</a></li>
+      {{ if gt $lastPage 1}}
+      <li class="page-item {{ if eq $page $lastPage}}{{ print `disabled` }}{{ end }}"><a class="page-link" href="/entry/?page={{ $lastPage }}">{{ $lastPage }}</a></li>
+      {{ end }}
+      {{ if gt $nextPage 0}}
+      <li class="page-item">
+      {{ else }}
+      <li class="page-item disabled">
+      {{ end }}
+        <a class="page-link" href="/entry/?page={{ $nextPage }}" aria-label="Next">
+          <span aria-hidden="true">&raquo;</span>
+        </a>
+      </li>
+    </ul>
+  </nav>
 
 {{ template "dependencies" . }}
 

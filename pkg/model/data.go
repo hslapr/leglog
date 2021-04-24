@@ -67,7 +67,19 @@ func Statistics() map[string]int64 {
 	return data
 }
 
-func Entries() []*Entry {
+func EntryCount() int64 {
+	var cnt int64
+	db.QueryRow("SELECT COUNT(id) FROM entry").Scan(&cnt)
+	return cnt
+}
+
+func TextCount() int64 {
+	var cnt int64
+	db.QueryRow("SELECT COUNT(id) FROM text").Scan(&cnt)
+	return cnt
+}
+
+func Entries(offset int64, limit int64, order string) []*Entry {
 	entries := make([]*Entry, 0)
 	var (
 		id                int64
@@ -75,7 +87,11 @@ func Entries() []*Entry {
 		language          string
 		creationTimestamp int64
 	)
-	r, _ := db.Query("SELECT id, text, language, creation_time FROM entry")
+	if len(order) > 0 {
+		order = "ORDER BY " + order
+	}
+	queryString := fmt.Sprintf("SELECT id, text, language, creation_time FROM entry %s LIMIT ? OFFSET ?", order)
+	r, _ := db.Query(queryString, limit, offset)
 	for r.Next() {
 		r.Scan(&id, &text, &language, &creationTimestamp)
 		entries = append(entries, &Entry{Id: id, Text: text, Language: language, CreationTimestamp: creationTimestamp})
@@ -83,9 +99,13 @@ func Entries() []*Entry {
 	return entries
 }
 
-func Texts() []*Text {
+func Texts(offset int64, limit int64, order string) []*Text {
 	texts := make([]*Text, 0)
-	r, _ := db.Query("select id, root_id, creation_time, language, title from text")
+	if len(order) > 0 {
+		order = "ORDER BY " + order
+	}
+	queryString := fmt.Sprintf("SELECT id, root_id, creation_time, language, title FROM text %s LIMIT ? OFFSET ?", order)
+	r, _ := db.Query(queryString, limit, offset)
 	for r.Next() {
 		text := new(Text)
 		r.Scan(&(text.Id), &(text.RootId), &(text.CreationTimestamp), &(text.Language), &(text.Title))

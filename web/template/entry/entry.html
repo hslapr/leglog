@@ -1,13 +1,13 @@
 {{ define "content" }}
 
-<h1>{{ .Text }} <small>{{ .Language }}</small></h1>
+<h1 class="text-center">{{ printf "%s: %s" .Language .Text }}</h1>
 
 
 <ul class="list-group">
 {{ range .Notes }}
 
 <li class="list-group-item">
-    {{ .Content }}
+    <div>{{ .Content }}</div>
     <button class="btnDeleteNote btn btn-danger" data-note-id = {{ .Id }}>Delete</button>
 </li>
 

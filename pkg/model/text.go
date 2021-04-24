@@ -16,6 +16,35 @@ type Text struct {
 	Title             string
 }
 
+func (text *Text) Excerpt(max int) string {
+	root := text.Root()
+	stack := make([]*Node, 0)
+	stack = append(stack, root)
+	var builder strings.Builder
+	for len(stack) > 0 {
+		node := stack[len(stack)-1]
+		stack = stack[:len(stack)-1]
+		children := node.Children()
+		if len(children) > 0 {
+			for i, j := 0, len(children)-1; i < j; i, j = i+1, j-1 {
+				children[i], children[j] = children[j], children[i]
+			}
+			stack = append(stack, children...)
+		} else {
+			builder.WriteString(node.Text)
+			if builder.Len() > max {
+				builder.WriteString("...")
+				break
+			}
+		}
+	}
+	return builder.String()
+}
+
+func (text *Text) CreationTime(layout string) string {
+	return time.Unix(text.CreationTimestamp, 0).Format(layout)
+}
+
 func NewText(language string, title string) *Text {
 	return &Text{Language: language, Title: title}
 }
@@ -122,17 +151,4 @@ func CreatePhrase(nodes []*Node, note *Note) (parent *Node, err error) {
 	// db.Exec("UPDATE node SET parent_id = ? WHERE id = ?", parent.Id, nodes[len(nodes)-1].Id)
 	db.Exec("UPDATE node SET prev_id = ? WHERE prev_id = ?", parent.Id, nodes[len(nodes)-1].Id)
 	return parent, nil
-}
-
-func (t *Text) Excerpt(max int) string {
-	var builder strings.Builder
-	node := t.Root()
-	for node != nil {
-
-		if builder.Len() >= max {
-			builder.WriteString("...")
-			break
-		}
-	}
-	return builder.String()
 }
