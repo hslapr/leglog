@@ -52,6 +52,11 @@ func NewText(language string, title string) *Text {
 func (text *Text) Save() {
 	text.save(db)
 }
+
+func (text *Text) SaveTitle() {
+	text.saveTitle(db)
+}
+
 func (text *Text) Js() template.JS {
 	return template.JS(text.Root().Js())
 }
@@ -64,13 +69,23 @@ func (text *Text) save(db *sql.DB) {
 	}
 }
 
-func (text *Text) Parse(s string) {
+func (text *Text) saveTitle(db *sql.DB) {
+	if text.Id > 0 {
+		db.Exec("UPDATE text SET title = ? WHERE id = ?", text.Title, text.Id)
+	}
+}
+
+func (text *Text) ParseAppendParagraphs(s string) {
+	var prevParagraphId int64
+	db.QueryRow("SELECT id FROM node WHERE parent_id = ? AND id NOT IN (SELECT prev_id FROM node)", text.RootId).Scan(&prevParagraphId)
+	text.parseAppendParagraphs(prevParagraphId, s)
+}
+
+func (text *Text) parseAppendParagraphs(prevParagraphId int64, s string) {
 	scanner := NewScanner(strings.NewReader(s))
-	root := NewNode("", ROOT)
-	root.Save()
-	text.RootId = root.Id
 	p := NewNode("", PARAGRAPH)
-	p.ParentId = root.Id
+	p.ParentId = text.RootId
+	p.PrevId = prevParagraphId
 	var prev *Node
 	for scanner.Next() {
 		t, nodeType := scanner.Scan()
@@ -80,7 +95,7 @@ func (text *Text) Parse(s string) {
 			}
 			prevParagraphId := p.Id
 			p = NewNode("", PARAGRAPH)
-			p.ParentId = root.Id
+			p.ParentId = text.RootId
 			p.PrevId = prevParagraphId
 			prev = nil
 		} else {
@@ -98,6 +113,13 @@ func (text *Text) Parse(s string) {
 			prev = node
 		}
 	}
+}
+
+func (text *Text) Parse(s string) {
+	root := NewNode("", ROOT)
+	root.Save()
+	text.RootId = root.Id
+	text.parseAppendParagraphs(0, s)
 }
 
 func LoadText(id int64) *Text {

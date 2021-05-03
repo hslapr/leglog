@@ -2,7 +2,7 @@ package model
 
 import (
 	"database/sql"
-	"fmt"
+	"log"
 	"time"
 )
 
@@ -40,7 +40,10 @@ func (note *Note) SaveContent() {
 func (note *Note) saveContent(db *sql.DB) {
 	if note.Id > 0 {
 		note.UpdateTimestamp = time.Now().Unix()
-		db.Exec("UPDATE note SET content = ?, update_time = ? WHERE id = ?", note.Content, note.UpdateTimestamp, note.Id)
+		_, e := db.Exec("UPDATE note SET content = ?, update_time = ? WHERE id = ?", note.Content, note.UpdateTimestamp, note.Id)
+		if e != nil {
+			log.Println(e)
+		}
 	}
 }
 
@@ -72,7 +75,9 @@ func QueryNotes(s string, language string) (notes []*Note) {
 	INNER JOIN entry ON note.entry_id = entry.id
 	WHERE note.entry_id IN (select id from ids UNION SELECT lemma_id AS id FROM lemmatization WHERE entry_id IN ids)
 	`, s, language)
-	fmt.Println(e)
+	if e != nil {
+		log.Println(e)
+	}
 	for r.Next() {
 		r.Scan(&id, &entryId, &creationTimestamp, &updateTimestamp, &content, &entryText)
 		notes = append(notes, &Note{Id: id, EntryId: entryId, CreationTimestamp: creationTimestamp, UpdateTimestamp: updateTimestamp, Content: content, EntryText: entryText})

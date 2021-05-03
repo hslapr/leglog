@@ -2,11 +2,13 @@ package main
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
 
 	"github.com/hslapr/leglog/pkg/lemmatizer"
 	"github.com/hslapr/leglog/pkg/model"
+	"github.com/hslapr/leglog/pkg/util"
 )
 
 type CreateNotePostData struct {
@@ -15,6 +17,7 @@ type CreateNotePostData struct {
 	EntryText string
 	Language  string
 	Lemma     string
+	Comment   string
 }
 
 type BindNotePostData struct {
@@ -66,7 +69,7 @@ func createNoteHandler(w http.ResponseWriter, r *http.Request) {
 		note = model.NewNote(lemma.Id, data.Content)
 		note.Save()
 		note.EntryText = lemma.Text
-		entry.AddLemma(lemma)
+		entry.AddLemma(lemma, data.Comment)
 	} else {
 		note = model.NewNote(entry.Id, data.Content)
 		note.Save()
@@ -123,4 +126,48 @@ func getLemmasHandler(w http.ResponseWriter, r *http.Request) {
 	js, _ := json.Marshal(lemmas)
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(js)
+}
+
+func removeLemmaHandler(w http.ResponseWriter, r *http.Request) {
+	entryId, _ := strconv.ParseInt(r.FormValue("entryId"), 10, 64)
+	lemmaId, _ := strconv.ParseInt(r.FormValue("lemmaId"), 10, 64)
+	log.Printf("removeLemmaHandler: entryId = %d, lemmaId = %d", entryId, lemmaId)
+	model.RemoveLemma(entryId, lemmaId)
+}
+
+func deleteEntryHandler(w http.ResponseWriter, r *http.Request) {
+	id, _ := strconv.ParseInt(r.FormValue("id"), 10, 64)
+	model.DeleteEntry(id)
+	http.Redirect(w, r, "/entry/", http.StatusFound)
+}
+
+func deleteTextHandler(w http.ResponseWriter, r *http.Request) {
+	id, _ := strconv.ParseInt(r.FormValue("textId"), 10, 64)
+	rootId, _ := strconv.ParseInt(r.FormValue("rootId"), 10, 64)
+	model.DeleteText(id, rootId)
+	http.Redirect(w, r, "/text/", http.StatusFound)
+}
+
+func addParagraphHandler(w http.ResponseWriter, r *http.Request) {
+	id, _ := strconv.ParseInt(r.FormValue("textId"), 10, 64)
+	rootId, _ := strconv.ParseInt(r.FormValue("rootId"), 10, 64)
+	s := r.FormValue("s")
+	s = util.SanitizeText(s)
+	text := &model.Text{Id: id, RootId: rootId}
+	text.ParseAppendParagraphs(s)
+	http.Redirect(w, r, r.Referer(), http.StatusFound)
+}
+
+func deleteParagraphHandler(w http.ResponseWriter, r *http.Request) {
+	id, _ := strconv.ParseInt(r.FormValue("paragraphId"), 10, 64)
+	model.DeleteBranch(id)
+	http.Redirect(w, r, r.Referer(), http.StatusFound)
+}
+
+func changeTitleHandler(w http.ResponseWriter, r *http.Request) {
+	id, _ := strconv.ParseInt(r.FormValue("id"), 10, 64)
+	title := r.FormValue("title")
+	text := &model.Text{Id: id, Title: title}
+	text.SaveTitle()
+	http.Redirect(w, r, r.Referer(), http.StatusFound)
 }

@@ -5,9 +5,29 @@
 {{ $prevPage := index . "PrevPage" }}
 {{ $nextPage := index . "NextPage" }}
 {{ $lastPage := index . "LastPage" }}
+{{ $language := index . "Language" }}
+{{ $order := index . "Order" }}
+
+<form id="filterForm" class="mb-3">
+  <div class="input-group">
+  <label class="input-group-text" for="language">Language</label>
+  <select class="form-select" name="language" id="selectLanguage">
+    <option value="" {{ if eq $language "" }}{{ "selected" }}{{ end }}>All</option>
+    <option value="it" {{ if eq $language "it" }}{{ "selected" }}{{ end }}>Italiano</option>
+    <option value="en" {{ if eq $language "en" }}{{ "selected" }}{{ end }}>English</option>
+  </select>
+  <label class="input-group-text" for="order">Order</label>
+  <select class="form-select" name="order" id="selectOrder">
+    <option value="creation_time DESC" {{ if eq $order "creation_time DESC" }}{{ "selected" }}{{ end }}>Recently Created</option>
+    <option value="creation_time" {{ if eq $order "creation_time" }}{{ "selected" }}{{ end }}>Old</option>
+    <option value="text" {{ if eq $order "text" }}{{ "selected" }}{{ end }}>Alphabet</option>
+  </select>
+  <input class="btn btn-outline-secondary" type="submit" value="Submit">
+  </div>
+</form>
 
 
-<table class="table">
+<table class="table mb-3">
     <thead>
         <tr>
             <th scope="col">Entry</th>
@@ -31,6 +51,18 @@
         {{ end }}
     </tbody>
 </table>
+
+
+<form action="/entry/create" method="POST" class="mb-3">
+  <div class="input-group">
+    <input name="text" class="form-control" type="text" placeholder="New Entry">
+    <select class="form-select" name="language">
+      <option value="it" {{ if eq $language "it" }}{{ "selected" }}{{ end }}>Italiano</option>
+      <option value="en" {{ if eq $language "en" }}{{ "selected" }}{{ end }}>English</option>
+    </select>
+    <input class="btn btn-outline-primary" type="submit" value="Submit">
+  </div>
+  </form>
 
 <nav aria-label="Page navigation">
     <ul class="pagination justify-content-center">
@@ -57,9 +89,13 @@
         </a>
       </li>
     </ul>
-  </nav>
+</nav>
 
 {{ template "dependencies" . }}
-
+{{ template "scripts" }}
 {{ end }}
 
+{{ define "scripts" }}
+<script>
+</script>
+{{ end }}

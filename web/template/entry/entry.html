@@ -1,41 +1,90 @@
 {{ define "content" }}
 
-<h1 class="text-center">{{ printf "%s: %s" .Language .Text }}</h1>
+{{ $lemmas := .Lemmas }}
+{{ $derives := .Derives }}
+
+<h1 class="text-center">{{ .Text }} <span class="badge bg-info rounded-pill">{{ .Language }}</span></h1>
 
 
 <ul class="list-group">
 {{ range .Notes }}
 
 <li class="list-group-item">
-    <div>{{ .Content }}</div>
-    <button class="btnDeleteNote btn btn-danger" data-note-id = {{ .Id }}>Delete</button>
+    <div class="mb-2">
+    <textarea class="form-control" name="content" id="taNoteContent">{{ .Content }}</textarea>
+    </div>
+    <div class="d-flex">
+    <button class="btnUpdateNote btn btn-primary ms-auto" data-note-id = {{ .Id }}>Update</button>
+    <button class="btnDeleteNote btn btn-danger ms-2" data-note-id = {{ .Id }}>Delete</button>
+    </div>
 </li>
 
 {{ end }}
 </ul>
 
+{{ if gt (len $lemmas) 0 }}
 <h2>Lemmas</h2>
-<ul class="list-group">
-    {{ range .Lemmas }}
-    
-    <li class="list-group-item">
-        <a href="/entry/{{ .Id }}">{{ .Text }}</a>
-    </li>
+    {{ range $lemmas }}
+<div>
+    <span class="border rounded-pill border-2 bg-light p-1 me-2">
+        <a class="text-decoration-none" href="/entry/{{ .Id }}">{{ .Text }}</a>
+        <button type="button" class="btnRemoveLemma btn-close" data-lemma-id={{.Id}}></button>
+    </span>
+</div>
     
     {{ end }}
-    </ul>
+{{ end }}
 
+{{ if gt (len $derives) 0 }}
 <h2>Derives</h2>
 
-<ul class="list-group">
+<div>
     {{ range .Derives }}
-    
-    <li class="list-group-item">
-        <a href="/entry/{{ .Id }}">{{ .Text }}</a>
-    </li>
-    
+        <a class="me-2" href="/entry/{{ .Id }}">{{ printf "%s (%s)" .Text .Comment }}</a>
     {{ end }}
-    </ul>
+</div>
+{{ end }}
+
+<hr>
+<div class="d-flex mb-3">
+    <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapsibleNoteForm" aria-expanded="false" aria-controls="collapseNoteForm">
+      Add Note
+    </button>
+    <button class="btn btn-primary ms-2" type="button" data-bs-toggle="collapse" data-bs-target="#collapsibleLemmaForm" aria-expanded="false" aria-controls="collapseLemmaForm">
+      Add Lemma
+    </button>
+    <button class="btn btn-danger ms-auto" id="btnDeleteEntry">Delete</button>
+</div>
+<div class="collapse" id="collapsibleNoteForm" data-parent="#collapses">
+    <form action="/entry/add-note" method="POST">
+        <div class="mb-2">
+            <textarea class="form-control" name="content"></textarea>
+        </div>
+        <input type="hidden" value={{ .Id }} name="entryId">
+        <div class="d-flex justify-content-end">
+            <input class="btn btn-primary" type="submit" value="Submit">
+        </div>
+    </form>
+</div>
+<div class="collapse" id="collapsibleLemmaForm" data-parent="#collapses">
+    <form action="/entry/add-lemma" method="POST">
+        <div class="row mb-2">
+            <div class="col">
+                <input type="text" class="form-control" name="lemma" placeholder="lemma">
+            </div>
+            <div class="col">
+                <input type="text" class="form-control" name="comment" placeholder="comment">
+            </div>
+        </div>
+        <input type="hidden" value={{ .Id }} name="entryId">
+        <input type="hidden" value={{ .Language }} name="language">
+        <div class="d-flex justify-content-end">
+            <input type="submit" class="btn btn-primary" value="Submit">
+        </div>
+    </form>
+</div>
+
+
 
 {{ template "dependencies" . }}
 {{ template "scripts" . }}
@@ -44,5 +93,16 @@
 
 
 {{ define "scripts" }}
+<script>
+    window.Leglog.entryId = {{ .Id }};
+    $(()=>{
+    $('#collapsibleNoteForm').on('show.bs.collapse', function () {
+        $('#collapsibleLemmaForm').collapse('hide');
+    });
+    $('#collapsibleLemmaForm').on('show.bs.collapse', function () {
+        $('#collapsibleNoteForm').collapse('hide');
+    });
+});
+</script>
 <script src="/static/js/entry.js"></script>
 {{ end }}

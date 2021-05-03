@@ -1,15 +1,11 @@
 {{ define "content" }}
-
+{{ $root := .Root }}
 <h1 class="text-center">{{ .Title }}</h1>
 
 <div id="divText">
 </div>
 
-<div id="divEntries" style="display: none;">
-  <hr>
-  <button class="btn btn-primary mx-1" id="btnNewEntryNote">New</button>
-</div>
-
+<input type="text" id="iSelectedText">
 
 <form id="newNoteForm" method="POST" action="/note/create" style="display: none;" autocomplete="off">
   <hr>
@@ -19,22 +15,32 @@
   </div>
   <div class="row mb-3">
     <div class="col">
-      <div class="dropdown"></div>
       <input type="text" class="form-control dropdown-toggle" data-bs-toggle="dropdown" id="iLemma" placeholder="lemma"
         name="lemma">
-      <div class="dropdown-menu p-0 m-0">
-        <div class="input-group p-0 m-0"><select class="form-select" id="lemmaSelect" name="lemma">
+      <div class="dropdown-menu p-0 m-0" id="divLemmaDropdown">
+        <div class="input-group p-0 m-0">
+          <select class="form-select" id="lemmaSelect" name="lemma">
           </select>
           <button class="btn btn-outline-secondary" type="button" id="btnConfirmLemma">OK</button>
         </div>
       </div>
     </div>
+    <div class="col">
+      <input type="text" class="form-control dropdown-toggle" data-bs-toggle="dropdown" placeholder="comment" id="iComment" name="comment">
+      <div class="dropdown-menu p-0 m-0" id="divCommentDropdown">
+        <div class="input-group p-0 m-0">
+          <select class="form-select" id="commentSelect" name="comment">
+          </select>
+          <button class="btn btn-outline-secondary" type="button" id="btnConfirmComment">OK</button>
+        </div>
+      </div>
+    </div>
     <div class="col input-group d-flex justify-content-end">
       <select class="form-select" id="entryCaseSelect">
-        <option selected value="0">Original Case</option>
-        <option value="1">Lower Case</option>
-        <option value="2">Title Case</option>
-        <option value="3">Upper Case</option>
+        <option selected value="0">Original</option>
+        <option value="1">Lower</option>
+        <option value="2">Title</option>
+        <option value="3">Upper</option>
       </select>
       <button class="btn btn-primary" id="btnSubmitNewNote">Submit</button>
     </div>
@@ -70,7 +76,51 @@
   </div>
 </div>
 
-<input type="text" id="iSelectedText">
+
+<div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasLeft" aria-labelledby="offcanvasLeftLabel">
+  <div class="offcanvas-header">
+    <h5 id="offcanvasLeftLabel">Advanced Features</h5>
+    <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+  <div class="offcanvas-body">
+    <form class="mb-3" action="/text/change-title" method="POST">
+      <div class="input-group">
+        <label class="input-group-text" for="iTitle">Title</label>
+        <input class="form-control" name="title" id="iTitle">
+        <button class="btn btn-outline-primary" type="submit">Change</button>
+      </div>
+      <input type="hidden" name="id" value={{ .Id }}>
+    </form>
+    <form class="mb-3" action="/text/add-paragraph" method="POST">
+      <div class="mb-2">
+        <label class="form-label" for="s">Add Paragraphs</label>
+        <textarea class="form-control" name="s"></textarea>
+      </div>
+      <input type="hidden" name="textId" value={{ .Id }}>
+      <input type="hidden" name="rootId" value={{ .RootId }}>
+      <div class="d-flex justify-content-end">
+        <input class="btn btn-primary" type="submit" value="Submit">
+      </div>
+    </form>
+    <form action="/text/delete-paragraph" method="POST">
+      <div class="input-group">
+        <label class="input-group-text" for="selectParagraghId">Paragraph</label>
+        <select class="form-select" id="selectParagraghId" name="paragraphId">
+          {{ range $root.Children }}
+          <option value={{ .Id }}>{{ .Id }}</option>
+          {{ end }}
+        </select>
+        <button class="btn btn-outline-danger" type="submit">Delete</button>
+      </div>
+    </form>
+    <hr>
+    <div class="d-flex justify-content-end">  
+      <button class="btn btn-danger" id="btnDeleteText" type="button">Delete</button>
+    </div>
+  </div>
+</div>
+
+
 
 
 {{ template "dependencies" . }}

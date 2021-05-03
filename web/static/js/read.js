@@ -1,5 +1,9 @@
 'use strict';
 
+function toggleOffcanvasLeft(){
+    $('#offcanvasLeft').offcanvas('toggle');
+}
+
 function getLemmas() {
     $.ajax('/read/get-lemmas', {
         async: false,
@@ -15,6 +19,32 @@ function getLemmas() {
             }
         }
     });
+}
+
+function setCommentOptions(){
+    let nComments = [
+        'pl',
+    ];
+    let aComments = [
+        'm','f','pl',
+        'm.pl','f.pl',
+    ];
+    let vComments = [
+        '1.sg.i.present','2.sg.i.present','3.sg.i.present',
+        '1.pl.i.present','2.pl.i.present','3.pl.i.present',
+        '1.sg.i.imperfect','2.sg.i.imperfect','3.sg.i.imperfect',
+        '1.pl.i.imperfect','2.pl.i.imperfect','3.pl.i.imperfect',
+        '1.sg.i.future','2.sg.i.future','3.sg.i.future',
+        '1.pl.i.future','2.pl.i.future','3.pl.i.future',
+    ];
+    
+    let comments = aComments.concat(vComments);
+    for (const comment of comments) {
+        let option = $('<option></option>');
+                    option.addClass('dropdown-item').attr('value', comment).text(comment);
+                    $('#commentSelect').append(option);
+    }
+    
 }
 
 function displayNote(note) {
@@ -64,6 +94,7 @@ function showNewNoteForm() {
     $('#taNewNote').val('');
     $('#lemmaSelect').empty();
     getLemmas();
+    setCommentOptions();
     $('#newNoteForm').show();
 }
 
@@ -122,6 +153,11 @@ class Selection {
         } else {
             queryNotes(this.text, window.Leglog.text.language);
         }
+
+        // 方便复制
+        $('#iSelectedText').val(this.text);
+        $('#iSelectedText')[0].select();
+        $('#iSelectedText').focus();
     }
 
     select(node) {
@@ -173,6 +209,12 @@ class Selection {
     }
 }
 
+function deleteText(){
+        $('<form action="/text/delete" method="POST">' + 
+              '<input type="hidden" name="textId" value="' + window.Leglog.text.id + '">' +
+              '<input type="hidden" name="rootId" value="' + window.Leglog.text.root.id + '">' +
+              '</form>').appendTo('body').submit();
+}
 
 
 var selection;
@@ -262,12 +304,14 @@ $(() => {
                 break;
         }
         let lemma = $('#iLemma').val();
+        let comment = $('#iComment').val();
         let data = {
             Nodes: [],
             Content: $('#taNewNote').val(),
             EntryText: entryText,
             Language: window.Leglog.text.language,
             Lemma: lemma,
+            Comment: comment
         }
         for (const node of nodes) {
             data.Nodes.push({
@@ -401,6 +445,20 @@ $(() => {
 
     $('#lemmaSelect').change(function (e) {
         $('#iLemma').val($('#lemmaSelect').val());
-        $("#newNoteForm div.dropdown-menu").collapse('toggle');
+        $("#divLemmaDropdown").collapse('toggle');
+    });
+
+    $('#btnConfirmComment').click(function (e) {
+        e.preventDefault();
+        $('#iComment').val($('#commentSelect').val());
+    });
+
+    $('#commentSelect').change(function (e) {
+        $('#iComment').val($('#commentSelect').val());
+        $("#divCommentDropdown").collapse('toggle');
+    });
+
+    $('#btnDeleteText').click(function(e){
+        deleteText();
     });
 });

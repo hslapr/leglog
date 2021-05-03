@@ -12,12 +12,17 @@ type Entry struct {
 	CreationTimestamp int64
 }
 
+type Derive struct {
+	Entry
+	Comment string
+}
+
 func (entry *Entry) CreationTime(layout string) string {
 	return time.Unix(entry.CreationTimestamp, 0).Format(layout)
 }
 
-func (entry *Entry) AddLemma(lemma *Entry) {
-	db.Exec("INSERT INTO lemmatization (entry_id, lemma_id) VALUES (?, ?)", entry.Id, lemma.Id)
+func (entry *Entry) AddLemma(lemma *Entry, comment string) {
+	db.Exec("INSERT INTO lemmatization (entry_id, lemma_id, comment) VALUES (?, ?, ?)", entry.Id, lemma.Id, comment)
 }
 
 func NewEntry(text string, language string) *Entry {
@@ -106,17 +111,17 @@ func (entry *Entry) lemmas(db *sql.DB) []*Entry {
 	return entries
 }
 
-func (entry *Entry) Derives() []*Entry {
+func (entry *Entry) Derives() []*Derive {
 	return entry.derives(db)
 }
 
-func (entry *Entry) derives(db *sql.DB) []*Entry {
-	var entries = make([]*Entry, 0)
-	r, _ := db.Query("SELECT id, text, language, creation_time FROM entry WHERE id IN (SELECT entry_id FROM lemmatization WHERE lemma_id = ?)", entry.Id)
+func (entry *Entry) derives(db *sql.DB) []*Derive {
+	var derives = make([]*Derive, 0)
+	r, _ := db.Query("SELECT entry.id, entry.text, entry.language, entry.creation_time, lemmatization.comment FROM entry INNER JOIN lemmatization ON entry.id = lemmatization.entry_id WHERE lemmatization.lemma_id = ?", entry.Id)
 	for r.Next() {
-		e := new(Entry)
-		r.Scan(&e.Id, &e.Text, &e.Language, &e.CreationTimestamp)
-		entries = append(entries, e)
+		d := new(Derive)
+		r.Scan(&d.Id, &d.Text, &d.Language, &d.CreationTimestamp, &d.Comment)
+		derives = append(derives, d)
 	}
-	return entries
+	return derives
 }

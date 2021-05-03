@@ -3,6 +3,7 @@ package model
 import (
 	"database/sql"
 	"fmt"
+	"strconv"
 	"strings"
 )
 
@@ -110,28 +111,18 @@ func (node *Node) prev(db *sql.DB) *Node {
 
 func (node *Node) Js() string {
 	var builder strings.Builder
-	// builder.WriteString(fmt.Sprintf("let node%d = new Node(%d, %d,%d,%d, %d, \"%s\");\n",
-	// 	node.Id, node.Id, node.NodeType, node.ParentId, node.PrevId, node.NoteId, node.Text))
-	builder.WriteString(fmt.Sprintf("window.Leglog.nodes[%d] = new Node(%d, %d,%d,%d, %d, \"%s\");\n",
-		node.Id, node.Id, node.NodeType, node.ParentId, node.PrevId, node.NoteId, node.Text))
+	builder.WriteString(fmt.Sprintf("window.Leglog.nodes[%d] = new Node(%d, %d,%d,%d, %d, %s);\n",
+		node.Id, node.Id, node.NodeType, node.ParentId, node.PrevId, node.NoteId, strconv.Quote(node.Text)))
 	children := node.Children()
 	if len(children) > 0 {
 		var lastChildId int64
 		for _, child := range children {
 			builder.WriteString(child.Js())
-			// builder.WriteString(fmt.Sprintf("node%d.children.push(node%d);\n",
-			// 	node.Id, child.Id))
-			// builder.WriteString(fmt.Sprintf("node%d.parent = node%d;\n",
-			// 	child.Id, node.Id))
 			builder.WriteString(fmt.Sprintf("window.Leglog.nodes[%d].children.push(window.Leglog.nodes[%d]);\n",
 				node.Id, child.Id))
 			builder.WriteString(fmt.Sprintf("window.Leglog.nodes[%d].parent = window.Leglog.nodes[%d];\n",
 				child.Id, node.Id))
 			if lastChildId > 0 {
-				// builder.WriteString(fmt.Sprintf("node%d.next = node%d;\n",
-				// 	lastChildId, child.Id))
-				// builder.WriteString(fmt.Sprintf("node%d.prev = node%d;\n",
-				// 	child.Id, lastChildId))
 				builder.WriteString(fmt.Sprintf("window.Leglog.nodes[%d].next = window.Leglog.nodes[%d];\n",
 					lastChildId, child.Id))
 				builder.WriteString(fmt.Sprintf("window.Leglog.nodes[%d].prev = window.Leglog.nodes[%d];\n",

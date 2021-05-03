@@ -1,0 +1,5 @@
+{
+    "entryPerPage": 10,
+    "textPerPage": 5,
+    "databasePath": "../../assets/leglog.db"
+}

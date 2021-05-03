@@ -8,26 +8,26 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/hslapr/leglog/pkg/data"
+	"github.com/hslapr/leglog/pkg/config"
 	"github.com/hslapr/leglog/pkg/model"
 	"github.com/hslapr/leglog/pkg/util"
 )
 
-const (
-	ENTRY_PER_PAGE = 10
-	TEXT_PER_PAGE  = 5
+var (
+	entryPerPage int64
+	textPerPage  int64
 )
+
+func init() {
+	entryPerPage = config.Config.EntryPerPage
+	textPerPage = config.Config.TextPerPage
+}
 
 func noescape(str string) template.JS {
 	return template.JS(str)
 }
 
 const TEMPLATE_PATH = "../../web/template/"
-
-type ViewModel struct {
-	Text     *data.Text
-	TextHtml template.HTML
-}
 
 var indexTemplate = template.Must(template.ParseFiles(
 	TEMPLATE_PATH+"index.html",
@@ -88,16 +88,23 @@ func entryHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		var page int64 = 1
 		pageStr := r.FormValue("page")
+		language := r.FormValue("language")
+		order := r.FormValue("order")
+		if len(order) < 1 {
+			order = "creation_time DESC"
+		}
 		if len(pageStr) > 0 {
 			page, _ = strconv.ParseInt(pageStr, 10, 64)
 		}
 		cntEntry := model.EntryCount()
-		cntPages := int64(math.Ceil(float64(cntEntry) / ENTRY_PER_PAGE))
+		cntPages := int64(math.Ceil(float64(cntEntry) / float64(entryPerPage)))
 		if page > cntPages {
 			page = cntPages
 		}
 		data := make(map[string]interface{})
-		entries := model.Entries((page-1)*ENTRY_PER_PAGE, ENTRY_PER_PAGE, "creation_time DESC")
+		data["Language"] = language
+		data["Order"] = order
+		entries := model.Entries((page-1)*entryPerPage, entryPerPage, language, order)
 		data["Entries"] = entries
 		data["Page"] = page
 		if page < cntPages {
@@ -120,6 +127,21 @@ func entryHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func addLemmaHandler(w http.ResponseWriter, r *http.Request) {
+	entryId, _ := strconv.ParseInt(r.FormValue("entryId"), 10, 64)
+	entry := &model.Entry{Id: entryId}
+	lemmaText := r.FormValue("lemma")
+	comment := r.FormValue("comment")
+	language := r.FormValue("language")
+	lemma := model.GetEntry(lemmaText, language)
+	if lemma == nil {
+		lemma = model.NewEntry(lemmaText, language)
+		lemma.Save()
+	}
+	entry.AddLemma(lemma, comment)
+	http.Redirect(w, r, r.Referer(), http.StatusFound)
+}
+
 func textHandler(w http.ResponseWriter, r *http.Request) {
 	var page int64 = 1
 	pageStr := r.FormValue("page")
@@ -127,11 +149,11 @@ func textHandler(w http.ResponseWriter, r *http.Request) {
 		page, _ = strconv.ParseInt(pageStr, 10, 64)
 	}
 	cntText := model.TextCount()
-	cntPages := int64(math.Ceil(float64(cntText) / TEXT_PER_PAGE))
+	cntPages := int64(math.Ceil(float64(cntText) / float64(textPerPage)))
 	if page > cntPages {
 		page = cntPages
 	}
-	texts := model.Texts((page-1)*TEXT_PER_PAGE, TEXT_PER_PAGE, "creation_time DESC")
+	texts := model.Texts((page-1)*textPerPage, textPerPage, "creation_time DESC")
 	data := make(map[string]interface{})
 	data["Texts"] = texts
 	data["Page"] = page
@@ -149,6 +171,21 @@ func textHandler(w http.ResponseWriter, r *http.Request) {
 	textListTemplate.ExecuteTemplate(w, "layout", data)
 }
 
+func updateEntryNoteHandler(w http.ResponseWriter, r *http.Request) {
+	id, _ := strconv.ParseInt(r.FormValue("id"), 10, 64)
+	content := r.FormValue("content")
+	note := &model.Note{Id: id, Content: content}
+	note.SaveContent()
+}
+
+func createEntryHandler(w http.ResponseWriter, r *http.Request) {
+	text := r.FormValue("text")
+	language := r.FormValue("language")
+	entry := model.NewEntry(text, language)
+	entry.Save()
+	http.Redirect(w, r, r.Referer(), http.StatusFound)
+}
+
 func main() {
 	fs := http.FileServer(http.Dir("../../web/static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
@@ -156,7 +193,14 @@ func main() {
 	http.HandleFunc("/text/", textHandler)
 	http.HandleFunc("/read/get-lemmas", getLemmasHandler)
 	http.HandleFunc("/entry/", entryHandler)
+	http.HandleFunc("/entry/delete", deleteEntryHandler)
+	http.HandleFunc("/text/delete", deleteTextHandler)
+	http.HandleFunc("/entry/remove-lemma", removeLemmaHandler)
 	http.HandleFunc("/note/create", createNoteHandler)
+	http.HandleFunc("/entry/create", createEntryHandler)
+	http.HandleFunc("/entry/add-note", addNoteHandler)
+	http.HandleFunc("/entry/update-note", updateEntryNoteHandler)
+	http.HandleFunc("/entry/add-lemma", addLemmaHandler)
 	http.HandleFunc("/read/", readHandler)
 	http.HandleFunc("/", indexHandler)
 	http.HandleFunc("/note/query", queryNotesHandler)
@@ -165,6 +209,9 @@ func main() {
 	http.HandleFunc("/note/unbind", unbindNoteHandler)
 	http.HandleFunc("/note/update", updateNoteHandler)
 	http.HandleFunc("/note/delete", deleteNoteHandler)
+	http.HandleFunc("/text/add-paragraph", addParagraphHandler)
+	http.HandleFunc("/text/delete-paragraph", deleteParagraphHandler)
+	http.HandleFunc("/text/change-title", changeTitleHandler)
 
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
