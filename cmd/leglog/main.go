@@ -181,9 +181,19 @@ func updateEntryNoteHandler(w http.ResponseWriter, r *http.Request) {
 func createEntryHandler(w http.ResponseWriter, r *http.Request) {
 	text := r.FormValue("text")
 	language := r.FormValue("language")
+	lemmaText := r.FormValue("lemma")
 	entry := model.NewEntry(text, language)
 	entry.Save()
-	http.Redirect(w, r, r.Referer(), http.StatusFound)
+	if len(lemmaText) > 0 {
+		lemma := model.GetEntry(lemmaText, language)
+		if lemma == nil {
+			lemma = model.NewEntry(lemmaText, language)
+			lemma.Save()
+		}
+		entry.AddLemma(lemma, r.FormValue("comment"))
+	} else {
+		http.Redirect(w, r, r.Referer(), http.StatusFound)
+	}
 }
 
 func main() {

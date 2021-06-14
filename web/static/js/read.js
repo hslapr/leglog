@@ -1,6 +1,6 @@
 'use strict';
 
-function toggleOffcanvasLeft(){
+function toggleOffcanvasLeft() {
     $('#offcanvasLeft').offcanvas('toggle');
 }
 
@@ -21,30 +21,30 @@ function getLemmas() {
     });
 }
 
-function setCommentOptions(){
+function setCommentOptions() {
     let nComments = [
         'pl',
     ];
     let aComments = [
-        'm','f','pl',
-        'm.pl','f.pl',
+        'm', 'f', 'pl',
+        'm.pl', 'f.pl',
     ];
     let vComments = [
-        '1.sg.i.present','2.sg.i.present','3.sg.i.present',
-        '1.pl.i.present','2.pl.i.present','3.pl.i.present',
-        '1.sg.i.imperfect','2.sg.i.imperfect','3.sg.i.imperfect',
-        '1.pl.i.imperfect','2.pl.i.imperfect','3.pl.i.imperfect',
-        '1.sg.i.future','2.sg.i.future','3.sg.i.future',
-        '1.pl.i.future','2.pl.i.future','3.pl.i.future',
+        '1.sg.i.present', '2.sg.i.present', '3.sg.i.present',
+        '1.pl.i.present', '2.pl.i.present', '3.pl.i.present',
+        '1.sg.i.imperfect', '2.sg.i.imperfect', '3.sg.i.imperfect',
+        '1.pl.i.imperfect', '2.pl.i.imperfect', '3.pl.i.imperfect',
+        '1.sg.i.future', '2.sg.i.future', '3.sg.i.future',
+        '1.pl.i.future', '2.pl.i.future', '3.pl.i.future',
     ];
-    
+
     let comments = aComments.concat(vComments);
     for (const comment of comments) {
         let option = $('<option></option>');
-                    option.addClass('dropdown-item').attr('value', comment).text(comment);
-                    $('#commentSelect').append(option);
+        option.addClass('dropdown-item').attr('value', comment).text(comment);
+        $('#commentSelect').append(option);
     }
-    
+
 }
 
 function displayNote(note) {
@@ -209,11 +209,11 @@ class Selection {
     }
 }
 
-function deleteText(){
-        $('<form action="/text/delete" method="POST">' + 
-              '<input type="hidden" name="textId" value="' + window.Leglog.text.id + '">' +
-              '<input type="hidden" name="rootId" value="' + window.Leglog.text.root.id + '">' +
-              '</form>').appendTo('body').submit();
+function deleteText() {
+    $('<form action="/text/delete" method="POST">' +
+        '<input type="hidden" name="textId" value="' + window.Leglog.text.id + '">' +
+        '<input type="hidden" name="rootId" value="' + window.Leglog.text.root.id + '">' +
+        '</form>').appendTo('body').submit();
 }
 
 
@@ -305,6 +305,21 @@ $(() => {
         }
         let lemma = $('#iLemma').val();
         let comment = $('#iComment').val();
+        if ($('#taNewNote').val().length < 1) {
+            $.ajax('/entry/create', {
+                data: {
+                    text: entryText,
+                    lemma: lemma,
+                    language: window.Leglog.text.language,
+                    comment: comment
+                },
+                method: 'POST',
+                success: function (e) {
+                    window.Leglog.selection.refresh();
+                },
+            });
+            return;
+        }
         let data = {
             Nodes: [],
             Content: $('#taNewNote').val(),
@@ -413,9 +428,9 @@ $(() => {
                             }
                             selection.start = child;
                         }
-                        if (i==node.children.length-1){
+                        if (i == node.children.length - 1) {
                             child.next = node.next;
-                            if(child.next){
+                            if (child.next) {
                                 child.next.prev = child;
                                 child.next.prevId = child.id;
                             }
@@ -428,8 +443,8 @@ $(() => {
                         }
                         node.tag.before(child.tag);
                     }
-                    if(node.parent){
-                        node.parent.children.splice(node.parent.children.indexOf(node,1));
+                    if (node.parent) {
+                        node.parent.children.splice(node.parent.children.indexOf(node, 1));
                     }
                     node.tag.remove();
                 }
@@ -458,7 +473,7 @@ $(() => {
         $("#divCommentDropdown").collapse('toggle');
     });
 
-    $('#btnDeleteText').click(function(e){
+    $('#btnDeleteText').click(function (e) {
         deleteText();
     });
 });
