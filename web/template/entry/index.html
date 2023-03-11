@@ -71,20 +71,20 @@
         {{ else }}
         <li class="page-item disabled">
         {{ end }}
-        <a class="page-link" href="/entry/?page={{ $prevPage }}" aria-label="Previous">
+        <a class="page-link" href="/entry/?page={{ $prevPage }}&language={{ $language }}&order={{ $order }}" aria-label="Previous">
           <span aria-hidden="true">&laquo;</span>
         </a>
       </li>
-      <li class="page-item {{ if eq $page 1}}{{ print `disabled` }}{{ end }}"><a class="page-link" href="/entry/?page=1">1</a></li>
+      <li class="page-item {{ if eq $page 1}}{{ print `disabled` }}{{ end }}"><a class="page-link" href="/entry/?page=1&language={{ $language }}&order={{ $order }}">1</a></li>
       {{ if gt $lastPage 1}}
-      <li class="page-item {{ if eq $page $lastPage}}{{ print `disabled` }}{{ end }}"><a class="page-link" href="/entry/?page={{ $lastPage }}">{{ $lastPage }}</a></li>
+      <li class="page-item {{ if eq $page $lastPage}}{{ print `disabled` }}{{ end }}"><a class="page-link" href="/entry/?page={{ $lastPage }}&language={{ $language }}&order={{ $order }}">{{ $lastPage }}</a></li>
       {{ end }}
       {{ if gt $nextPage 0}}
       <li class="page-item">
       {{ else }}
       <li class="page-item disabled">
       {{ end }}
-        <a class="page-link" href="/entry/?page={{ $nextPage }}" aria-label="Next">
+        <a class="page-link" href="/entry/?page={{ $nextPage }}&language={{ $language }}&order={{ $order }}" aria-label="Next">
           <span aria-hidden="true">&raquo;</span>
         </a>
       </li>
